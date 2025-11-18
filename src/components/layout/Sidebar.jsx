@@ -53,7 +53,7 @@ const Sidebar = () => {
         )}
 
       {/* Sidebar */}
-      <div.aside
+      <aside
         className={cn(
           'fixed lg:sticky top-0 left-0 z-40 h-screen w-70 bg-white dark:bg-gray-900',
           'border-r border-gray-200 dark:border-gray-700',
@@ -131,7 +131,7 @@ const Sidebar = () => {
             </div>
           </div>
         </div>
-      </div.aside>
+      </aside>
     </>
   );
 };
