@@ -25,25 +25,38 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-30 border-b border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md">
+    <nav className="sticky top-0 z-30 backdrop-blur-sm" style={{
+      borderBottom: '2px solid #d4c4a8',
+      background: 'rgba(255, 255, 255, 0.95)',
+      boxShadow: '0 2px 8px rgba(62, 39, 35, 0.08)'
+    }}>
       <div className="container-custom">
         <div className="flex items-center justify-between h-16">
           {/* Left: Logo + Menu */}
           <div className="flex items-center gap-4">
             <button
               onClick={toggleSidebar}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="lg:hidden p-2 rounded hover:bg-vintage-cream dark:hover:bg-vintage-brownDark transition-colors"
+              style={{ color: '#5d4037' }}
               aria-label="Toggle sidebar"
             >
               <Menu className="w-5 h-5" />
             </button>
 
-            <Link to="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-600 to-primary-700 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">📚</span>
+            <Link to="/" className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded flex items-center justify-center" style={{
+                background: 'linear-gradient(135deg, #8b5a2b 0%, #6d4423 100%)',
+                border: '2px solid #c9a962',
+                boxShadow: '0 2px 4px rgba(62, 39, 35, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+              }}>
+                <span className="text-2xl">📚</span>
               </div>
-              <span className="font-bold text-xl text-gray-900 dark:text-gray-100 hidden sm:block">
-                Library Tracker
+              <span className="font-bold text-xl hidden sm:block" style={{
+                fontFamily: "'Playfair Display', serif",
+                color: '#3e2723',
+                letterSpacing: '0.02em'
+              }}>
+                Bibliothèque
               </span>
             </Link>
           </div>
@@ -84,13 +97,34 @@ const Navbar = () => {
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="p-2 rounded transition-all duration-300"
+              style={{
+                color: '#5d4037',
+                border: '2px solid transparent',
+                ...(theme === 'dark' ? {
+                  background: 'rgba(45, 36, 22, 0.6)',
+                  borderColor: '#8b5a2b'
+                } : {})
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(201, 169, 98, 0.15)';
+                e.currentTarget.style.borderColor = '#c9a962';
+              }}
+              onMouseLeave={(e) => {
+                if (theme === 'dark') {
+                  e.currentTarget.style.background = 'rgba(45, 36, 22, 0.6)';
+                  e.currentTarget.style.borderColor = '#8b5a2b';
+                } else {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.borderColor = 'transparent';
+                }
+              }}
               aria-label="Toggle theme"
             >
               {theme === 'light' ? (
                 <Moon className="w-5 h-5" />
               ) : (
-                <Sun className="w-5 h-5" />
+                <Sun className="w-5 h-5" style={{ color: '#daa520' }} />
               )}
             </button>
           </div>
