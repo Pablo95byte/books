@@ -9,6 +9,8 @@ import { Toaster } from 'react-hot-toast';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import useStore from '../../store/useStore';
+import { setupAutoBackup } from '../../lib/cloudBackup';
+import { bookService } from '../../lib/db';
 
 const Layout = () => {
   const { loadBooks, setTheme, theme } = useStore();
@@ -21,6 +23,13 @@ const Layout = () => {
   // Apply theme on mount
   useEffect(() => {
     setTheme(theme);
+  }, []);
+
+  // Setup auto-backup (runs every 24h)
+  useEffect(() => {
+    setupAutoBackup(async () => {
+      return await bookService.getAll();
+    });
   }, []);
 
   return (

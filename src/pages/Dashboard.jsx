@@ -5,7 +5,6 @@
 
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import {
   BookOpen,
   BookCheck,
@@ -51,9 +50,7 @@ const Dashboard = () => {
   if (!stats) return null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+    <div
       className="space-y-8"
     >
       {/* Header */}
@@ -201,7 +198,7 @@ const Dashboard = () => {
           </Button>
         </div>
       )}
-    </motion.div>
+    </div>
   );
 };
 

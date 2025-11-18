@@ -4,7 +4,6 @@
  */
 
 import { NavLink } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
   Library,
@@ -46,23 +45,15 @@ const Sidebar = () => {
   return (
     <>
       {/* Mobile Overlay */}
-      <AnimatePresence>
         {sidebarOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <div
             onClick={toggleSidebar}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
           />
         )}
-      </AnimatePresence>
 
       {/* Sidebar */}
-      <motion.aside
-        initial={{ x: -280 }}
-        animate={{ x: sidebarOpen ? 0 : -280 }}
-        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+      <div.aside
         className={cn(
           'fixed lg:sticky top-0 left-0 z-40 h-screen w-70 bg-white dark:bg-gray-900',
           'border-r border-gray-200 dark:border-gray-700',
@@ -140,7 +131,7 @@ const Sidebar = () => {
             </div>
           </div>
         </div>
-      </motion.aside>
+      </div.aside>
     </>
   );
 };

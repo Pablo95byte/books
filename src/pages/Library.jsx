@@ -3,7 +3,6 @@
  * Display all books with filters and search
  */
 
-import { motion } from 'framer-motion';
 import { SortAsc, SortDesc } from 'lucide-react';
 import BookFilters from '../components/books/BookFilters';
 import BookGrid from '../components/books/BookGrid';
@@ -14,9 +13,7 @@ const Library = () => {
   const { sortBy, sortOrder, setSorting } = useStore();
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+    <div
       className="space-y-6"
     >
       {/* Header */}
@@ -62,7 +59,7 @@ const Library = () => {
 
       {/* Books Grid */}
       <BookGrid />
-    </motion.div>
+    </div>
   );
 };
 

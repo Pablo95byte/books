@@ -5,7 +5,6 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import {
   ArrowLeft,
   Edit2,
@@ -73,9 +72,7 @@ const BookDetail = () => {
   const readingDays = calculateReadingDays(book.dateStarted, book.dateFinished);
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+    <div
       className="space-y-6 max-w-5xl mx-auto"
     >
       {/* Back Button */}
@@ -322,7 +319,7 @@ const BookDetail = () => {
           </Card>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

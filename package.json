@@ -18,13 +18,15 @@
     "zustand": "^4.5.0",
     "dexie": "^3.2.4",
     "dexie-react-hooks": "^1.1.7",
-    "framer-motion": "^11.0.3",
     "chart.js": "^4.4.1",
     "react-chartjs-2": "^5.2.0",
     "date-fns": "^3.3.1",
     "lucide-react": "^0.336.0",
     "clsx": "^2.1.0",
-    "react-hot-toast": "^2.4.1"
+    "react-hot-toast": "^2.4.1",
+    "@zxing/browser": "^0.1.5",
+    "@zxing/library": "^0.21.0",
+    "firebase": "^10.7.1"
   },
   "devDependencies": {
     "@types/react": "^18.3.1",

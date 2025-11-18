@@ -3,7 +3,6 @@
  * Grid layout for books with pagination
  */
 
-import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import BookCard from './BookCard';
@@ -52,11 +51,10 @@ const BookGrid = () => {
       </div>
 
       {/* Books Grid */}
-      <motion.div
+      <div
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
         layout
       >
-        <AnimatePresence>
           {books.map((book) => (
             <BookCard
               key={book.id}
@@ -64,8 +62,7 @@ const BookGrid = () => {
               onClick={() => navigate(`/book/${book.id}`)}
             />
           ))}
-        </AnimatePresence>
-      </motion.div>
+      </div>
 
       {/* Pagination */}
       {totalPages > 1 && (

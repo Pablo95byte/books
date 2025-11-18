@@ -3,7 +3,6 @@
  * Display a single statistic with icon
  */
 
-import { motion } from 'framer-motion';
 import Card from '../ui/Card';
 
 const StatsCard = ({ title, value, icon: Icon, color = 'primary', trend, subtitle }) => {
@@ -16,11 +15,7 @@ const StatsCard = ({ title, value, icon: Icon, color = 'primary', trend, subtitl
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.2 }}
+    <div
     >
       <Card className="h-full">
         <Card.Content>
@@ -52,7 +47,7 @@ const StatsCard = ({ title, value, icon: Icon, color = 'primary', trend, subtitl
           </div>
         </Card.Content>
       </Card>
-    </motion.div>
+    </div>
   );
 };
 

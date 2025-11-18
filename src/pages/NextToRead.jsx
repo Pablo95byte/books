@@ -5,7 +5,6 @@
 
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { BookMarked } from 'lucide-react';
 import BookCard from '../components/books/BookCard';
 import EmptyState from '../components/ui/EmptyState';
@@ -38,9 +37,7 @@ const NextToRead = () => {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+    <div
       className="space-y-6"
     >
       {/* Header */}
@@ -73,7 +70,7 @@ const NextToRead = () => {
           actionLabel="Aggiungi libro"
         />
       )}
-    </motion.div>
+    </div>
   );
 };
 

@@ -3,7 +3,6 @@
  * Display a book in card format
  */
 
-import { motion } from 'framer-motion';
 import { Edit2, Trash2, Calendar, BookOpen } from 'lucide-react';
 import Card from '../ui/Card';
 import Badge from '../ui/Badge';
@@ -32,12 +31,7 @@ const BookCard = ({ book, onClick }) => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.2 }}
+    <div
     >
       <Card hover onClick={onClick} className="h-full flex flex-col overflow-hidden group">
         {/* Book Cover */}
@@ -138,7 +132,7 @@ const BookCard = ({ book, onClick }) => {
           </div>
         </Card.Content>
       </Card>
-    </motion.div>
+    </div>
   );
 };
 

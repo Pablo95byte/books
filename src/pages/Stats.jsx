@@ -4,7 +4,6 @@
  */
 
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
 import {
   BookOpen,
   BookCheck,
@@ -44,9 +43,7 @@ const Stats = () => {
   if (!stats) return null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+    <div
       className="space-y-8"
     >
       {/* Header */}
@@ -144,7 +141,7 @@ const Stats = () => {
           </Card.Content>
         </Card>
       )}
-    </motion.div>
+    </div>
   );
 };
 

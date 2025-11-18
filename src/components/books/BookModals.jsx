@@ -1,12 +1,14 @@
 /**
  * BookModals Component
- * All modals for book operations (Add, Edit, Delete, Import/Export)
+ * All modals: Add, Edit, Delete, Import/Export, Scanner, Cloud Backup
  */
 
 import { useState } from 'react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import BookForm from './BookForm';
+import ISBNScanner from './ISBNScanner';
+import CloudBackup from './CloudBackup';
 import useStore from '../../store/useStore';
 import { downloadFile, readFile } from '../../lib/utils';
 import toast from 'react-hot-toast';
@@ -21,16 +23,20 @@ const BookModals = () => {
     deleteBook,
     importBooks,
     exportBooks,
+    books,
     isLoading,
   } = useStore();
 
   const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [showScanner, setShowScanner] = useState(false);
+  const [scannedBookData, setScannedBookData] = useState(null);
 
   // Add Book Modal
   const handleAddBook = async (bookData) => {
     try {
       await addBook(bookData);
       closeModal('addBook');
+      setScannedBookData(null); // Reset scanned data
     } catch (error) {
       console.error('Error adding book:', error);
     }
@@ -81,18 +87,43 @@ const BookModals = () => {
 
     try {
       const content = await readFile(file);
-      const books = JSON.parse(content);
+      const data = JSON.parse(content);
 
-      if (!Array.isArray(books)) {
+      // Support both old format (array) and new format (object with books array)
+      const booksToImport = Array.isArray(data) ? data : data.books;
+
+      if (!Array.isArray(booksToImport)) {
         toast.error('Formato file non valido');
         return;
       }
 
-      await importBooks(books);
+      await importBooks(booksToImport);
       closeModal('importExport');
     } catch (error) {
       console.error('Error importing books:', error);
       toast.error('Errore durante l\'importazione');
+    }
+  };
+
+  // Scanner ISBN
+  const handleBookFound = (bookData) => {
+    setScannedBookData(bookData);
+    setShowScanner(false);
+    closeModal('importExport'); // Close import/export modal if open
+
+    // Open add book modal with pre-filled data
+    setTimeout(() => {
+      useStore.getState().openModal('addBook');
+    }, 100);
+  };
+
+  // Cloud Backup Restore
+  const handleCloudRestore = async (restoredBooks) => {
+    try {
+      await importBooks(restoredBooks);
+    } catch (error) {
+      console.error('Error restoring from cloud:', error);
+      toast.error('Errore durante il ripristino');
     }
   };
 
@@ -101,13 +132,20 @@ const BookModals = () => {
       {/* Add Book Modal */}
       <Modal
         isOpen={modals.addBook}
-        onClose={() => closeModal('addBook')}
+        onClose={() => {
+          closeModal('addBook');
+          setScannedBookData(null);
+        }}
         title="Aggiungi nuovo libro"
         size="lg"
       >
         <BookForm
+          book={scannedBookData} // Pre-fill with scanned data if available
           onSubmit={handleAddBook}
-          onCancel={() => closeModal('addBook')}
+          onCancel={() => {
+            closeModal('addBook');
+            setScannedBookData(null);
+          }}
           isLoading={isLoading}
         />
       </Modal>
@@ -184,61 +222,80 @@ const BookModals = () => {
         </div>
       </Modal>
 
-      {/* Import/Export Modal */}
+      {/* Import/Export & Cloud Backup Modal */}
       <Modal
         isOpen={modals.importExport}
         onClose={() => closeModal('importExport')}
-        title="Import / Export"
-        size="md"
+        title="Backup & Sincronizzazione Cloud"
+        size="lg"
       >
         <div className="space-y-6">
-          {/* Export Section */}
-          <div>
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              📤 Esporta libreria
+          {/* Local Import/Export */}
+          <div className="border-b border-gray-200 dark:border-gray-700 pb-6">
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">
+              📤 Backup Locale
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              Scarica tutti i tuoi libri in formato JSON. Potrai usare questo file per
-              importare la libreria in futuro o come backup.
-            </p>
-            <Button variant="primary" onClick={handleExport}>
-              Scarica backup (JSON)
-            </Button>
+
+            <div className="space-y-3">
+              <Button
+                variant="primary"
+                className="w-full"
+                onClick={handleExport}
+              >
+                Scarica backup (JSON)
+              </Button>
+
+              <label className="btn btn-secondary cursor-pointer w-full">
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleImport}
+                  className="hidden"
+                />
+                Carica backup (JSON)
+              </label>
+            </div>
           </div>
 
-          <div className="border-t border-gray-200 dark:border-gray-700" />
-
-          {/* Import Section */}
+          {/* Cloud Backup */}
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              📥 Importa libreria
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">
+              ☁️ Backup Cloud
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              Carica un file JSON precedentemente esportato per ripristinare o unire
-              la tua libreria.
-            </p>
-
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-4">
-              <p className="text-yellow-800 dark:text-yellow-200 text-sm">
-                ⚠️ L'importazione aggiungerà i libri alla libreria esistente. I duplicati
-                verranno gestiti automaticamente.
-              </p>
-            </div>
-
-            <label className="btn btn-secondary cursor-pointer">
-              <input
-                type="file"
-                accept=".json"
-                onChange={handleImport}
-                className="hidden"
-              />
-              Seleziona file JSON
-            </label>
+            <CloudBackup
+              books={books}
+              onRestore={handleCloudRestore}
+              onClose={() => closeModal('importExport')}
+            />
           </div>
         </div>
       </Modal>
+
+      {/* ISBN Scanner */}
+      {showScanner && (
+        <ISBNScanner
+          onBookFound={handleBookFound}
+          onClose={() => setShowScanner(false)}
+        />
+      )}
     </>
   );
 };
+
+// Export function to open scanner from outside
+export const openScanner = () => {
+  const event = new CustomEvent('openScanner');
+  window.dispatchEvent(event);
+};
+
+// Listen for scanner events
+if (typeof window !== 'undefined') {
+  window.addEventListener('openScanner', () => {
+    const BookModalsInstance = document.querySelector('[data-bookmodals]');
+    if (BookModalsInstance) {
+      BookModalsInstance.click();
+    }
+  });
+}
 
 export default BookModals;

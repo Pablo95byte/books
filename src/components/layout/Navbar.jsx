@@ -3,13 +3,26 @@
  * Top navigation bar with theme toggle and actions
  */
 
-import { Moon, Sun, Menu, Plus, Download } from 'lucide-react';
+import { Moon, Sun, Menu, Plus, Download, Camera } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import useStore from '../../store/useStore';
 import Button from '../ui/Button';
+import ISBNScanner from '../books/ISBNScanner';
 
 const Navbar = () => {
-  const { theme, toggleTheme, toggleSidebar, openModal } = useStore();
+  const { theme, toggleTheme, toggleSidebar, openModal, addBook } = useStore();
+  const [showScanner, setShowScanner] = useState(false);
+
+  const handleBookFound = async (bookData) => {
+    setShowScanner(false);
+    // Add book directly from scanner
+    try {
+      await addBook(bookData);
+    } catch (error) {
+      console.error('Error adding scanned book:', error);
+    }
+  };
 
   return (
     <nav className="sticky top-0 z-30 border-b border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md">
@@ -37,6 +50,17 @@ const Navbar = () => {
 
           {/* Right: Actions */}
           <div className="flex items-center gap-2">
+            {/* Scanner ISBN */}
+            <Button
+              variant="success"
+              size="sm"
+              onClick={() => setShowScanner(true)}
+              icon={<Camera className="w-4 h-4" />}
+              className="hidden sm:flex"
+            >
+              Scansiona
+            </Button>
+
             {/* Add Book */}
             <Button
               variant="primary"
@@ -54,7 +78,7 @@ const Navbar = () => {
               onClick={() => openModal('importExport')}
               icon={<Download className="w-4 h-4" />}
             >
-              <span className="hidden md:inline">Import/Export</span>
+              <span className="hidden md:inline">Backup</span>
             </Button>
 
             {/* Theme Toggle */}
@@ -72,6 +96,14 @@ const Navbar = () => {
           </div>
         </div>
       </div>
+
+      {/* ISBN Scanner */}
+      {showScanner && (
+        <ISBNScanner
+          onBookFound={handleBookFound}
+          onClose={() => setShowScanner(false)}
+        />
+      )}
     </nav>
   );
 };
