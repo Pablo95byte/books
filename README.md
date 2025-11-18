@@ -5,6 +5,8 @@ Una **Progressive Web App moderna, performante e offline-first** per gestire la 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
+> **⚠️ PAGINA BIANCA? [Leggi la guida di troubleshooting →](TROUBLESHOOTING.md)**
+
 ## ✨ Caratteristiche
 
 ### 🎯 Funzionalità principali
@@ -39,7 +41,7 @@ Una **Progressive Web App moderna, performante e offline-first** per gestire la 
 - **Vite** - Build tool ultra-veloce
 - **React Router** - Client-side routing
 - **TailwindCSS** - Utility-first CSS
-- **Framer Motion** - Animazioni fluide
+- **Lucide React** - Icon library
 
 #### State Management
 - **Zustand** - State management leggero e moderno
@@ -136,6 +138,15 @@ npm run preview
 
 # La build sarà generata in /dist
 ```
+
+## 📚 Documentazione
+
+- **[NEW_FEATURES.md](NEW_FEATURES.md)** - Nuove funzionalità v2.0 (Scanner ISBN, Cloud Backup)
+- **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Guida risoluzione problemi (pagina bianca, errori)
+- **[FIREBASE_SETUP.md](FIREBASE_SETUP.md)** - Setup Firebase (opzionale)
+- **[QUICKSTART.md](QUICKSTART.md)** - Guida rapida 5 minuti
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Architettura dettagliata
+- **[DEPLOY.md](DEPLOY.md)** - Guida deploy completa
 
 ## 📦 Deploy
 
@@ -401,28 +412,26 @@ L'app si aggiorna automaticamente:
 
 ## 🐛 Troubleshooting
 
-### L'app non si installa come PWA
+**Hai problemi con l'app? Consulta la [guida completa di troubleshooting →](TROUBLESHOOTING.md)**
 
-1. Verifica che le icone siano in `/public/icons/`
-2. Controlla che manifest.webmanifest sia accessibile
-3. Usa HTTPS (o localhost per dev)
-4. Verifica Service Worker in DevTools → Application
+### Problema: Pagina Bianca
 
-### Database non funziona
+Se vedi una pagina completamente bianca:
+1. **NON aprire** `dist/index.html` direttamente (usa `npm run dev`)
+2. Apri la console browser (F12) per vedere gli errori
+3. Cancella cache e Service Worker
+4. Vedi [TROUBLESHOOTING.md](TROUBLESHOOTING.md) per dettagli
 
-1. Apri DevTools → Application → IndexedDB
-2. Verifica che `LibraryTrackerDB` esista
-3. Cancella il database e ricarica
-4. Controlla la console per errori
-
-### Build fallisce
+### Quick Fix
 
 ```bash
-# Pulisci cache e node_modules
-rm -rf node_modules dist .vite
+# Reset completo
+rm -rf node_modules dist package-lock.json
 npm install
-npm run build
+npm run dev
 ```
+
+**Leggi la [guida completa →](TROUBLESHOOTING.md) per altri problemi comuni.**
 
 ## 📄 License
 
