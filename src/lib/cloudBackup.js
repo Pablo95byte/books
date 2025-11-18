@@ -1,19 +1,14 @@
 /**
  * Cloud Backup Service
- * Multiple backup strategies: Firebase, GitHub Gist, Auto-download
+ * Multiple backup strategies: Firebase (optional), GitHub Gist, Auto-download
  */
 
-import { initializeApp } from 'firebase/app';
-import {
-  getFirestore,
-  doc,
-  setDoc,
-  getDoc,
-  collection,
-  getDocs
-} from 'firebase/firestore';
-import { getAuth, signInAnonymously } from 'firebase/auth';
 import toast from 'react-hot-toast';
+
+// Firebase modules - loaded dynamically only if needed
+let firebaseApp = null;
+let firebaseFirestore = null;
+let firebaseAuth = null;
 
 // Firebase configuration (user will need to add their own)
 const firebaseConfig = {
@@ -30,18 +25,40 @@ let db = null;
 let auth = null;
 
 /**
+ * Load Firebase modules dynamically
+ */
+async function loadFirebase() {
+  if (firebaseApp) return true; // Already loaded
+
+  try {
+    // Dynamic imports - only loads if Firebase is actually used
+    firebaseApp = await import('firebase/app');
+    firebaseFirestore = await import('firebase/firestore');
+    firebaseAuth = await import('firebase/auth');
+    return true;
+  } catch (error) {
+    console.error('Failed to load Firebase:', error);
+    return false;
+  }
+}
+
+/**
  * Initialize Firebase
  */
-function initFirebase() {
+async function initFirebase() {
   if (!firebaseConfig.apiKey) {
     console.warn('Firebase not configured');
     return false;
   }
 
+  // Load Firebase modules first
+  const loaded = await loadFirebase();
+  if (!loaded) return false;
+
   try {
-    app = initializeApp(firebaseConfig);
-    db = getFirestore(app);
-    auth = getAuth(app);
+    app = firebaseApp.initializeApp(firebaseConfig);
+    db = firebaseFirestore.getFirestore(app);
+    auth = firebaseAuth.getAuth(app);
     return true;
   } catch (error) {
     console.error('Firebase init error:', error);
@@ -55,18 +72,18 @@ function initFirebase() {
  * @param {string} userId
  */
 export async function backupToFirebase(books, userId = 'anonymous') {
-  if (!db && !initFirebase()) {
-    throw new Error('Firebase not configured');
+  if (!db && !(await initFirebase())) {
+    throw new Error('Firebase not configured. Add credentials to .env file.');
   }
 
   try {
     // Anonymous login if needed
     if (!auth.currentUser) {
-      await signInAnonymously(auth);
+      await firebaseAuth.signInAnonymously(auth);
     }
 
-    const backupDoc = doc(db, 'backups', userId);
-    await setDoc(backupDoc, {
+    const backupDoc = firebaseFirestore.doc(db, 'backups', userId);
+    await firebaseFirestore.setDoc(backupDoc, {
       books,
       timestamp: new Date().toISOString(),
       version: '1.0.0',
@@ -84,13 +101,13 @@ export async function backupToFirebase(books, userId = 'anonymous') {
  * @param {string} userId
  */
 export async function restoreFromFirebase(userId = 'anonymous') {
-  if (!db && !initFirebase()) {
-    throw new Error('Firebase not configured');
+  if (!db && !(await initFirebase())) {
+    throw new Error('Firebase not configured. Add credentials to .env file.');
   }
 
   try {
-    const backupDoc = doc(db, 'backups', userId);
-    const snapshot = await getDoc(backupDoc);
+    const backupDoc = firebaseFirestore.doc(db, 'backups', userId);
+    const snapshot = await firebaseFirestore.getDoc(backupDoc);
 
     if (!snapshot.exists()) {
       return null;
