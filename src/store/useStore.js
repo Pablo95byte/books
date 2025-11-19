@@ -28,6 +28,9 @@ const useStore = create(
       theme: 'light',
       sidebarOpen: true,
 
+      // View Mode: 'grid' | 'compact' | 'list' | 'table'
+      viewMode: 'grid',
+
       // Filters
       filters: {
         search: '',
@@ -216,6 +219,13 @@ const useStore = create(
        */
       toggleSidebar: () => {
         set(state => ({ sidebarOpen: !state.sidebarOpen }));
+      },
+
+      /**
+       * Set view mode
+       */
+      setViewMode: (viewMode) => {
+        set({ viewMode });
       },
 
       /**
@@ -408,6 +418,7 @@ const useStore = create(
       partialize: (state) => ({
         theme: state.theme,
         sidebarOpen: state.sidebarOpen,
+        viewMode: state.viewMode,
         filters: state.filters,
         sortBy: state.sortBy,
         sortOrder: state.sortOrder,
