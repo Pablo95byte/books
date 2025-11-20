@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generatore Icone PWA - Bibliothèque</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Georgia', serif;
+      background: linear-gradient(135deg, #f5f1e8 0%, #ebe4d1 100%);
+      padding: 40px 20px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      border: 2px solid #d4c4a8;
+      border-radius: 12px;
+      padding: 40px;
+      box-shadow: 0 8px 32px rgba(62, 39, 35, 0.12);
+    }
+    h1 {
+      font-size: 2rem;
+      color: #3e2723;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+    .subtitle {
+      color: #6d4423;
+      margin-bottom: 30px;
+      font-style: italic;
+    }
+    .preview {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      margin: 30px 0;
+      padding: 20px;
+      background: rgba(201, 169, 98, 0.1);
+      border: 2px solid #c9a962;
+      border-radius: 8px;
+    }
+    #iconPreview {
+      border: 2px solid #d4c4a8;
+      border-radius: 12px;
+    }
+    button {
+      background: linear-gradient(135deg, #8b5a2b 0%, #6d4423 100%);
+      color: #f5f1e8;
+      border: 2px solid #c9a962;
+      padding: 14px 32px;
+      font-size: 1.1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(62, 39, 35, 0.2);
+    }
+    button:hover {
+      background: linear-gradient(135deg, #6d4423 0%, #5d3a1f 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(62, 39, 35, 0.3);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .progress {
+      margin: 20px 0;
+      padding: 20px;
+      background: rgba(218, 165, 32, 0.1);
+      border: 2px solid #daa520;
+      border-radius: 8px;
+      display: none;
+    }
+    .progress.active {
+      display: block;
+    }
+    .progress-item {
+      padding: 8px 0;
+      color: #5d4037;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .progress-item.done {
+      color: #4e6741;
+    }
+    .progress-item.done::before {
+      content: '✓';
+      color: #4e6741;
+      font-weight: bold;
+      font-size: 1.2em;
+    }
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 15px;
+      margin: 30px 0;
+    }
+    .icon-item {
+      text-align: center;
+      padding: 10px;
+      background: white;
+      border: 2px solid #d4c4a8;
+      border-radius: 8px;
+    }
+    .icon-item img {
+      width: 100%;
+      border-radius: 4px;
+    }
+    .icon-item span {
+      display: block;
+      margin-top: 8px;
+      font-size: 0.85rem;
+      color: #6d4423;
+      font-weight: 600;
+    }
+    .instructions {
+      margin-top: 30px;
+      padding: 20px;
+      background: rgba(78, 103, 65, 0.1);
+      border: 2px solid #4e6741;
+      border-radius: 8px;
+      display: none;
+    }
+    .instructions.active {
+      display: block;
+    }
+    .instructions h3 {
+      color: #3e2723;
+      margin-bottom: 15px;
+    }
+    .instructions ol {
+      margin-left: 20px;
+      color: #5d4037;
+      line-height: 1.8;
+    }
+    .instructions code {
+      background: rgba(139, 90, 43, 0.1);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: monospace;
+      color: #6d4423;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📚 Generatore Icone PWA</h1>
+    <p class="subtitle">Genera automaticamente tutte le icone per la Bibliothèque</p>
+
+    <div class="preview">
+      <img id="iconPreview" width="128" height="128" />
+      <div>
+        <h3 style="color: #3e2723; margin-bottom: 8px;">Anteprima Icona</h3>
+        <p style="color: #6d4423;">Questa è l'icona che verrà usata per la tua PWA</p>
+      </div>
+    </div>
+
+    <button id="generateBtn" onclick="generateIcons()">
+      🎨 Genera Tutte le Icone
+    </button>
+
+    <div id="progress" class="progress"></div>
+    <div id="iconGrid" class="icon-grid"></div>
+
+    <div id="instructions" class="instructions">
+      <h3>✅ Icone Generate con Successo!</h3>
+      <p style="margin-bottom: 15px; color: #5d4037;">Le icone sono state salvate nella cartella <code>public/icons/</code></p>
+      <ol>
+        <li>Le icone sono state scaricate automaticamente nel tuo browser</li>
+        <li>Sposta tutti i file nella cartella <code>public/icons/</code> del progetto</li>
+        <li>Le icone verranno usate automaticamente dalla PWA</li>
+        <li>Fai il commit: <code>git add public/icons/ && git commit -m "feat: Add vintage book icon for PWA"</code></li>
+      </ol>
+    </div>
+  </div>
+
+  <script>
+    // Carica l'SVG e mostra l'anteprima
+    fetch('icon.svg')
+      .then(res => res.text())
+      .then(svgText => {
+        const blob = new Blob([svgText], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+        document.getElementById('iconPreview').src = url;
+      });
+
+    const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+
+    async function generateIcons() {
+      const btn = document.getElementById('generateBtn');
+      const progressDiv = document.getElementById('progress');
+      const iconGrid = document.getElementById('iconGrid');
+      const instructions = document.getElementById('instructions');
+
+      btn.disabled = true;
+      btn.textContent = '⏳ Generazione in corso...';
+      progressDiv.classList.add('active');
+      progressDiv.innerHTML = '';
+
+      // Carica l'SVG
+      const svgResponse = await fetch('icon.svg');
+      const svgText = await svgResponse.text();
+
+      for (const size of sizes) {
+        const progressItem = document.createElement('div');
+        progressItem.className = 'progress-item';
+        progressItem.textContent = `Generazione icona ${size}x${size}...`;
+        progressDiv.appendChild(progressItem);
+
+        // Crea canvas
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        // Converti SVG in immagine
+        const img = new Image();
+        const blob = new Blob([svgText], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+
+        await new Promise((resolve) => {
+          img.onload = () => {
+            ctx.drawImage(img, 0, 0, size, size);
+            URL.revokeObjectURL(url);
+
+            // Converti canvas in blob
+            canvas.toBlob((blob) => {
+              // Scarica l'immagine
+              const a = document.createElement('a');
+              a.href = URL.createObjectURL(blob);
+              a.download = `icon-${size}x${size}.png`;
+              a.click();
+
+              // Mostra nell'anteprima
+              const iconItem = document.createElement('div');
+              iconItem.className = 'icon-item';
+              iconItem.innerHTML = `
+                <img src="${a.href}" alt="${size}x${size}">
+                <span>${size}x${size}</span>
+              `;
+              iconGrid.appendChild(iconItem);
+
+              progressItem.classList.add('done');
+              progressItem.textContent = `Icona ${size}x${size} generata!`;
+
+              resolve();
+            }, 'image/png');
+          };
+          img.src = url;
+        });
+      }
+
+      btn.textContent = '✅ Icone Generate!';
+      btn.style.background = 'linear-gradient(135deg, #4e6741 0%, #3e5641 100%)';
+      instructions.classList.add('active');
+    }
+  </script>
+</body>
+</html>
