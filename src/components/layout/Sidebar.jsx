@@ -55,8 +55,9 @@ const Sidebar = () => {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed lg:sticky top-0 left-0 z-40 h-screen w-70',
-          'lg:translate-x-0'
+          'fixed lg:sticky top-0 left-0 z-40 h-screen w-70 transition-transform duration-300',
+          'lg:translate-x-0',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
         style={{
           top: '64px',

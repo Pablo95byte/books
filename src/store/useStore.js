@@ -26,7 +26,7 @@ const useStore = create(
       // UI STATE
       // ============================================
       theme: 'light',
-      sidebarOpen: true,
+      sidebarOpen: false, // Starts closed on mobile, opens with toggle button
 
       // View Mode: 'grid' | 'compact' | 'list' | 'table'
       viewMode: 'grid',
