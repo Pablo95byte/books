@@ -94,18 +94,44 @@ const ISBNScanner = ({ onBookFound, onClose }) => {
         };
 
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        console.log('✅ Camera stream obtained');
+        console.log('✅ Camera stream obtained:', stream.id);
 
         // Assign stream to video element
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
+        if (!videoRef.current) {
+          throw new Error('Video element not available');
+        }
 
-          // Wait for video to be ready and play
+        videoRef.current.srcObject = stream;
+        console.log('✅ Stream assigned to video element');
+
+        // Wait for video metadata to load
+        await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => reject(new Error('Video load timeout')), 10000);
+
+          videoRef.current.onloadedmetadata = () => {
+            clearTimeout(timeout);
+            console.log('✅ Video metadata loaded');
+            resolve();
+          };
+
+          videoRef.current.onerror = (e) => {
+            clearTimeout(timeout);
+            console.error('❌ Video error:', e);
+            reject(new Error('Video load error'));
+          };
+        });
+
+        // Start playing video
+        try {
           await videoRef.current.play();
-          console.log('✅ Video playing');
+          console.log('✅ Video playing - dimensions:', videoRef.current.videoWidth, 'x', videoRef.current.videoHeight);
+        } catch (playError) {
+          console.error('❌ Video play error:', playError);
+          throw playError;
         }
 
         // Start barcode detection on the video element
+        console.log('🔍 Starting barcode detection loop...');
         const controls = await readerRef.current.decodeFromVideoElement(
           videoRef.current,
           async (result, error) => {
@@ -126,7 +152,7 @@ const ISBNScanner = ({ onBookFound, onClose }) => {
           }
         );
 
-        console.log('✅ Scanner successfully started');
+        console.log('✅ Scanner successfully started - looking for barcodes...');
       } catch (decodeError) {
         console.error('❌ Error starting camera:', decodeError);
 
