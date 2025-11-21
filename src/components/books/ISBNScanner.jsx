@@ -76,15 +76,37 @@ const ISBNScanner = ({ onBookFound, onClose }) => {
         device.label.toLowerCase().includes('back') ||
         device.label.toLowerCase().includes('rear')
       );
-      const deviceId = backCamera ? backCamera.deviceId : videoInputDevices[0].deviceId;
-      console.log('📷 Using camera:', backCamera?.label || videoInputDevices[0].label);
+      const selectedDevice = backCamera || videoInputDevices[0];
+      console.log('📷 Using camera:', selectedDevice.label);
 
       // Start scanning
-      console.log('🔍 Starting barcode detection...');
+      console.log('🔍 Starting barcode detection and video stream...');
 
       try {
-        await readerRef.current.decodeFromVideoDevice(
-          deviceId,
+        // Get camera stream with specific constraints
+        const constraints = {
+          video: {
+            deviceId: selectedDevice.deviceId ? { exact: selectedDevice.deviceId } : undefined,
+            facingMode: backCamera ? 'environment' : 'user',
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          }
+        };
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        console.log('✅ Camera stream obtained');
+
+        // Assign stream to video element
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+
+          // Wait for video to be ready and play
+          await videoRef.current.play();
+          console.log('✅ Video playing');
+        }
+
+        // Start barcode detection on the video element
+        const controls = await readerRef.current.decodeFromVideoElement(
           videoRef.current,
           async (result, error) => {
             if (result) {
@@ -103,6 +125,7 @@ const ISBNScanner = ({ onBookFound, onClose }) => {
             }
           }
         );
+
         console.log('✅ Scanner successfully started');
       } catch (decodeError) {
         console.error('❌ Error starting camera:', decodeError);
