@@ -69,9 +69,8 @@ const Navbar = () => {
               size="sm"
               onClick={() => setShowScanner(true)}
               icon={<Camera className="w-4 h-4" />}
-              className="hidden sm:flex"
             >
-              Scansiona
+              <span className="hidden sm:inline">Scansiona</span>
             </Button>
 
             {/* Add Book */}
