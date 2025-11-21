@@ -52,37 +52,11 @@ const ISBNScanner = ({ onBookFound, onClose }) => {
         return;
       }
 
-      // Request camera permission explicitly
-      console.log('📸 Requesting camera permission...');
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-        console.log('✅ Camera permission granted');
-
-        // Stop the test stream
-        stream.getTracks().forEach(track => track.stop());
-      } catch (permError) {
-        console.error('❌ Camera permission denied:', permError);
-
-        let errorMsg = 'Fotocamera non disponibile. ';
-        if (permError.name === 'NotAllowedError') {
-          errorMsg += 'Permessi negati - usa l\'input manuale qui sotto.';
-        } else if (permError.name === 'NotFoundError') {
-          errorMsg += 'Nessuna fotocamera trovata - usa l\'input manuale qui sotto.';
-        } else if (permError.name === 'NotReadableError') {
-          errorMsg += 'Fotocamera in uso - usa l\'input manuale qui sotto.';
-        } else {
-          errorMsg = 'Fotocamera non disponibile - usa l\'input manuale qui sotto.';
-        }
-
-        setError(errorMsg);
-        setIsScanning(false);
-        setShowManualInput(true);
-        return;
-      }
-
       // Initialize barcode reader
       console.log('📚 Initializing barcode reader...');
       readerRef.current = new BrowserMultiFormatReader();
+
+      console.log('📸 Requesting camera access and starting scanner...');
 
       // Get video devices
       const videoInputDevices = await readerRef.current.listVideoInputDevices();
@@ -107,30 +81,49 @@ const ISBNScanner = ({ onBookFound, onClose }) => {
 
       // Start scanning
       console.log('🔍 Starting barcode detection...');
-      readerRef.current.decodeFromVideoDevice(
-        deviceId,
-        videoRef.current,
-        async (result, error) => {
-          if (result) {
-            const isbn = result.getText();
-            console.log('✅ ISBN scanned:', isbn);
 
-            // Stop scanning
-            stopScanning();
+      try {
+        await readerRef.current.decodeFromVideoDevice(
+          deviceId,
+          videoRef.current,
+          async (result, error) => {
+            if (result) {
+              const isbn = result.getText();
+              console.log('✅ ISBN scanned:', isbn);
 
-            // Fetch book data
-            await handleISBN(isbn);
+              // Stop scanning
+              stopScanning();
+
+              // Fetch book data
+              await handleISBN(isbn);
+            }
+
+            if (error && error.name !== 'NotFoundException') {
+              console.error('⚠️ Scanner error:', error);
+            }
           }
+        );
+        console.log('✅ Scanner successfully started');
+      } catch (decodeError) {
+        console.error('❌ Error starting camera:', decodeError);
 
-          if (error && error.name !== 'NotFoundException') {
-            console.error('⚠️ Scanner error:', error);
-          }
+        let errorMsg = 'Fotocamera non disponibile. ';
+        if (decodeError.name === 'NotAllowedError') {
+          errorMsg += 'Permessi negati - usa l\'input manuale qui sotto.';
+        } else if (decodeError.name === 'NotFoundError') {
+          errorMsg += 'Nessuna fotocamera trovata - usa l\'input manuale qui sotto.';
+        } else if (decodeError.name === 'NotReadableError') {
+          errorMsg += 'Fotocamera in uso - usa l\'input manuale qui sotto.';
+        } else {
+          errorMsg += 'Errore: ' + decodeError.message;
         }
-      );
 
-      console.log('✅ Scanner successfully started');
+        setError(errorMsg);
+        setIsScanning(false);
+        setShowManualInput(true);
+      }
     } catch (error) {
-      console.error('❌ Error starting scanner:', error);
+      console.error('❌ Error in scanner initialization:', error);
       const errorMsg = 'Errore scanner - usa l\'input manuale qui sotto.';
       setError(errorMsg);
       setIsScanning(false);
