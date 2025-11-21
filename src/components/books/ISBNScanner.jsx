@@ -195,36 +195,37 @@ const ISBNScanner = ({ onBookFound, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black">
+    <div className="fixed inset-0 bg-black" style={{ zIndex: 9999 }}>
       {/* Header */}
-      <div className="absolute top-0 left-0 right-0 p-4 bg-black/50 z-10">
+      <div className="absolute top-0 left-0 right-0 p-4 bg-black/70 backdrop-blur-sm" style={{ zIndex: 10 }}>
         <div className="flex items-center justify-between">
-          <h2 className="text-white font-semibold">Scanner ISBN</h2>
+          <h2 className="text-white font-semibold text-lg">Scanner ISBN</h2>
           <button
             onClick={() => {
               stopScanning();
               onClose();
             }}
-            className="text-white p-2 hover:bg-white/20 rounded-lg"
+            className="text-white p-2 hover:bg-white/20 rounded-lg transition-colors"
+            aria-label="Chiudi scanner"
           >
             <X className="w-6 h-6" />
           </button>
         </div>
       </div>
 
-      {/* Video Container */}
-      <div className="w-full h-full flex items-center justify-center p-4">
+      {/* Content Container */}
+      <div className="absolute inset-0 flex items-center justify-center p-6" style={{ paddingTop: '80px' }}>
         {!isScanning && !isLoading && !showManualInput && (
           <div className="text-center max-w-md w-full">
-            <Camera className="w-16 h-16 text-white mx-auto mb-4" />
-            <h3 className="text-white text-xl font-semibold mb-2">
-              Scansiona codice ISBN
+            <Camera className="w-20 h-20 text-white mx-auto mb-6" />
+            <h3 className="text-white text-2xl font-semibold mb-3">
+              Scansiona Codice ISBN
             </h3>
-            <p className="text-gray-300 mb-6">
+            <p className="text-gray-300 mb-8 text-base">
               Inquadra il codice a barre sul retro del libro
             </p>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               <Button
                 variant="primary"
                 size="lg"
@@ -254,10 +255,10 @@ const ISBNScanner = ({ onBookFound, onClose }) => {
         {!isScanning && !isLoading && showManualInput && (
           <div className="text-center max-w-md w-full">
             {error && (
-              <div className="mb-6 p-4 bg-yellow-500/20 border-2 border-yellow-500 rounded-lg">
+              <div className="mb-6 p-4 bg-yellow-500/20 border-2 border-yellow-500 rounded-xl">
                 <div className="flex items-start gap-3">
                   <AlertCircle className="w-6 h-6 text-yellow-400 flex-shrink-0 mt-0.5" />
-                  <div className="text-left">
+                  <div className="text-left flex-1">
                     <p className="text-yellow-200 font-semibold mb-1">Fotocamera non disponibile</p>
                     <p className="text-yellow-100 text-sm">{error}</p>
                   </div>
@@ -265,25 +266,26 @@ const ISBNScanner = ({ onBookFound, onClose }) => {
               </div>
             )}
 
-            <Keyboard className="w-16 h-16 text-white mx-auto mb-4" />
-            <h3 className="text-white text-xl font-semibold mb-2">
+            <Keyboard className="w-20 h-20 text-white mx-auto mb-6" />
+            <h3 className="text-white text-2xl font-semibold mb-3">
               Inserisci ISBN Manualmente
             </h3>
-            <p className="text-gray-300 mb-6">
+            <p className="text-gray-300 mb-8 text-base">
               Digita il codice ISBN del libro (10 o 13 cifre)
             </p>
 
-            <form onSubmit={handleManualSubmit} className="space-y-4">
+            <form onSubmit={handleManualSubmit} className="space-y-5">
               <input
                 type="text"
                 value={manualISBN}
                 onChange={(e) => setManualISBN(e.target.value)}
                 placeholder="Es: 9788804668879"
-                className="w-full px-4 py-3 bg-white/10 border-2 border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-lg tracking-wider text-center"
+                className="w-full px-4 py-4 bg-white/10 border-2 border-white/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-xl tracking-wider text-center font-mono"
                 autoFocus
+                inputMode="numeric"
               />
 
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <Button
                   type="submit"
                   variant="primary"
@@ -323,31 +325,34 @@ const ISBNScanner = ({ onBookFound, onClose }) => {
         )}
 
         {isScanning && (
-          <>
+          <div className="absolute inset-0">
             <video
               ref={videoRef}
               className="w-full h-full object-cover"
+              playsInline
+              autoPlay
+              muted
             />
 
             {/* Scanning Guide */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="border-4 border-white rounded-lg w-64 h-48 relative">
-                <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-primary-500 rounded-tl-lg" />
-                <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-primary-500 rounded-tr-lg" />
-                <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-primary-500 rounded-bl-lg" />
-                <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-primary-500 rounded-br-lg" />
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ paddingTop: '80px' }}>
+              <div className="border-4 border-white rounded-xl w-72 h-52 relative shadow-2xl">
+                <div className="absolute top-0 left-0 w-10 h-10 border-t-4 border-l-4 border-primary-500 rounded-tl-xl" />
+                <div className="absolute top-0 right-0 w-10 h-10 border-t-4 border-r-4 border-primary-500 rounded-tr-xl" />
+                <div className="absolute bottom-0 left-0 w-10 h-10 border-b-4 border-l-4 border-primary-500 rounded-bl-xl" />
+                <div className="absolute bottom-0 right-0 w-10 h-10 border-b-4 border-r-4 border-primary-500 rounded-br-xl" />
               </div>
             </div>
 
             {/* Instructions */}
-            <div className="absolute bottom-8 left-0 right-0 text-center">
-              <div className="inline-block bg-black/70 px-6 py-3 rounded-lg">
-                <p className="text-white font-medium">
+            <div className="absolute bottom-12 left-0 right-0 text-center px-4">
+              <div className="inline-block bg-black/80 backdrop-blur-sm px-8 py-4 rounded-xl shadow-lg">
+                <p className="text-white font-semibold text-base">
                   Posiziona il codice a barre nel riquadro
                 </p>
               </div>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>
