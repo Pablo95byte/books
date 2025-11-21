@@ -139,11 +139,23 @@ const ISBNScanner = ({ onBookFound, onClose }) => {
   };
 
   const stopScanning = () => {
-    if (readerRef.current) {
-      readerRef.current.reset();
-      readerRef.current = null;
+    try {
+      if (readerRef.current) {
+        // Stop all video tracks
+        if (videoRef.current && videoRef.current.srcObject) {
+          const stream = videoRef.current.srcObject;
+          stream.getTracks().forEach(track => track.stop());
+          videoRef.current.srcObject = null;
+        }
+
+        // Clear the reader reference
+        readerRef.current = null;
+      }
+    } catch (error) {
+      console.error('Error stopping scanner:', error);
+    } finally {
+      setIsScanning(false);
     }
-    setIsScanning(false);
   };
 
   const handleISBN = async (isbn) => {
