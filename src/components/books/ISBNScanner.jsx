@@ -5,7 +5,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { BrowserMultiFormatReader } from '@zxing/browser';
-import { Camera, X, Loader } from 'lucide-react';
+import { Camera, X, Loader, Keyboard, AlertCircle } from 'lucide-react';
 import Button from '../ui/Button';
 import { searchBookByISBN } from '../../lib/googleBooks';
 import toast from 'react-hot-toast';
@@ -13,6 +13,9 @@ import toast from 'react-hot-toast';
 const ISBNScanner = ({ onBookFound, onClose }) => {
   const [isScanning, setIsScanning] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showManualInput, setShowManualInput] = useState(false);
+  const [manualISBN, setManualISBN] = useState('');
+  const [error, setError] = useState(null);
   const videoRef = useRef(null);
   const readerRef = useRef(null);
 
@@ -25,34 +28,96 @@ const ISBNScanner = ({ onBookFound, onClose }) => {
 
   const startScanning = async () => {
     try {
+      console.log('🎥 Starting camera scanner...');
+      setError(null);
       setIsScanning(true);
 
+      // Check if running in secure context (HTTPS)
+      if (!window.isSecureContext) {
+        const errorMsg = 'La fotocamera richiede HTTPS. Usa l\'input manuale.';
+        console.error('❌ Not in secure context (HTTPS required)');
+        setError(errorMsg);
+        toast.error(errorMsg);
+        setIsScanning(false);
+        setShowManualInput(true);
+        return;
+      }
+
+      // Check if getUserMedia is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        const errorMsg = 'Browser non supporta l\'accesso alla fotocamera';
+        console.error('❌ getUserMedia not available');
+        setError(errorMsg);
+        toast.error(errorMsg);
+        setIsScanning(false);
+        setShowManualInput(true);
+        return;
+      }
+
+      // Request camera permission explicitly
+      console.log('📸 Requesting camera permission...');
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        console.log('✅ Camera permission granted');
+
+        // Stop the test stream
+        stream.getTracks().forEach(track => track.stop());
+      } catch (permError) {
+        console.error('❌ Camera permission denied:', permError);
+
+        let errorMsg = 'Accesso fotocamera negato. ';
+        if (permError.name === 'NotAllowedError') {
+          errorMsg += 'Abilita i permessi nelle impostazioni del browser.';
+        } else if (permError.name === 'NotFoundError') {
+          errorMsg += 'Nessuna fotocamera trovata sul dispositivo.';
+        } else if (permError.name === 'NotReadableError') {
+          errorMsg += 'Fotocamera in uso da altra app.';
+        } else {
+          errorMsg += permError.message;
+        }
+
+        setError(errorMsg);
+        toast.error(errorMsg);
+        setIsScanning(false);
+        setShowManualInput(true);
+        return;
+      }
+
       // Initialize barcode reader
+      console.log('📚 Initializing barcode reader...');
       readerRef.current = new BrowserMultiFormatReader();
 
       // Get video devices
       const videoInputDevices = await readerRef.current.listVideoInputDevices();
+      console.log(`📹 Found ${videoInputDevices.length} camera(s):`, videoInputDevices.map(d => d.label));
 
       if (videoInputDevices.length === 0) {
-        toast.error('Nessuna fotocamera trovata');
+        const errorMsg = 'Nessuna fotocamera trovata sul dispositivo';
+        console.error('❌ No cameras found');
+        setError(errorMsg);
+        toast.error(errorMsg);
         setIsScanning(false);
+        setShowManualInput(true);
         return;
       }
 
       // Use back camera if available (mobile)
       const backCamera = videoInputDevices.find(device =>
-        device.label.toLowerCase().includes('back')
+        device.label.toLowerCase().includes('back') ||
+        device.label.toLowerCase().includes('rear')
       );
       const deviceId = backCamera ? backCamera.deviceId : videoInputDevices[0].deviceId;
+      console.log('📷 Using camera:', backCamera?.label || videoInputDevices[0].label);
 
       // Start scanning
+      console.log('🔍 Starting barcode detection...');
       readerRef.current.decodeFromVideoDevice(
         deviceId,
         videoRef.current,
         async (result, error) => {
           if (result) {
             const isbn = result.getText();
-            console.log('ISBN scanned:', isbn);
+            console.log('✅ ISBN scanned:', isbn);
 
             // Stop scanning
             stopScanning();
@@ -62,16 +127,20 @@ const ISBNScanner = ({ onBookFound, onClose }) => {
           }
 
           if (error && error.name !== 'NotFoundException') {
-            console.error('Scanner error:', error);
+            console.error('⚠️ Scanner error:', error);
           }
         }
       );
 
       toast.success('Scanner attivo - inquadra il codice a barre');
+      console.log('✅ Scanner successfully started');
     } catch (error) {
-      console.error('Error starting scanner:', error);
-      toast.error('Errore nell\'avvio dello scanner');
+      console.error('❌ Error starting scanner:', error);
+      const errorMsg = `Errore scanner: ${error.message}`;
+      setError(errorMsg);
+      toast.error(errorMsg);
       setIsScanning(false);
+      setShowManualInput(true);
     }
   };
 
@@ -87,6 +156,7 @@ const ISBNScanner = ({ onBookFound, onClose }) => {
     setIsLoading(true);
 
     try {
+      console.log('📖 Searching for ISBN:', isbn);
       toast.loading('Ricerca libro...', { id: 'searching' });
 
       const bookData = await searchBookByISBN(isbn);
@@ -94,19 +164,39 @@ const ISBNScanner = ({ onBookFound, onClose }) => {
       toast.dismiss('searching');
 
       if (!bookData) {
+        console.warn('⚠️ Book not found for ISBN:', isbn);
         toast.error('Libro non trovato. Aggiungi manualmente.');
         return;
       }
 
+      console.log('✅ Book found:', bookData.title);
       toast.success(`Trovato: ${bookData.title}`);
       onBookFound(bookData);
       onClose();
     } catch (error) {
-      console.error('Error fetching book:', error);
+      console.error('❌ Error fetching book:', error);
       toast.error('Errore nel recupero dati libro');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleManualSubmit = async (e) => {
+    e.preventDefault();
+    const cleanISBN = manualISBN.trim().replace(/[-\s]/g, '');
+
+    if (!cleanISBN) {
+      toast.error('Inserisci un codice ISBN valido');
+      return;
+    }
+
+    if (cleanISBN.length !== 10 && cleanISBN.length !== 13) {
+      toast.error('L\'ISBN deve essere di 10 o 13 cifre');
+      return;
+    }
+
+    console.log('📝 Manual ISBN entry:', cleanISBN);
+    await handleISBN(cleanISBN);
   };
 
   return (
@@ -129,8 +219,8 @@ const ISBNScanner = ({ onBookFound, onClose }) => {
 
       {/* Video Container */}
       <div className="w-full h-full flex items-center justify-center">
-        {!isScanning && !isLoading && (
-          <div className="text-center p-8">
+        {!isScanning && !isLoading && !showManualInput && (
+          <div className="text-center p-8 max-w-md">
             <Camera className="w-16 h-16 text-white mx-auto mb-4" />
             <h3 className="text-white text-xl font-semibold mb-2">
               Scansiona codice ISBN
@@ -138,14 +228,86 @@ const ISBNScanner = ({ onBookFound, onClose }) => {
             <p className="text-gray-300 mb-6">
               Inquadra il codice a barre sul retro del libro
             </p>
-            <Button
-              variant="primary"
-              size="lg"
-              onClick={startScanning}
-              icon={<Camera className="w-5 h-5" />}
-            >
-              Avvia Scanner
-            </Button>
+
+            {error && (
+              <div className="mb-6 p-4 bg-red-500/20 border border-red-500 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                  <p className="text-red-200 text-sm text-left">{error}</p>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={startScanning}
+                icon={<Camera className="w-5 h-5" />}
+                className="w-full"
+              >
+                Avvia Scanner
+              </Button>
+
+              <Button
+                variant="secondary"
+                size="lg"
+                onClick={() => setShowManualInput(true)}
+                icon={<Keyboard className="w-5 h-5" />}
+                className="w-full bg-white/10 hover:bg-white/20 text-white border-white/30"
+              >
+                Inserisci ISBN Manualmente
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {!isScanning && !isLoading && showManualInput && (
+          <div className="text-center p-8 max-w-md w-full">
+            <Keyboard className="w-16 h-16 text-white mx-auto mb-4" />
+            <h3 className="text-white text-xl font-semibold mb-2">
+              Inserisci ISBN
+            </h3>
+            <p className="text-gray-300 mb-6">
+              Digita il codice ISBN del libro (10 o 13 cifre)
+            </p>
+
+            <form onSubmit={handleManualSubmit} className="space-y-4">
+              <input
+                type="text"
+                value={manualISBN}
+                onChange={(e) => setManualISBN(e.target.value)}
+                placeholder="Es: 9788804668879"
+                className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 text-lg tracking-wider text-center"
+                autoFocus
+              />
+
+              <div className="space-y-3">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="lg"
+                  className="w-full"
+                >
+                  Cerca Libro
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="lg"
+                  onClick={() => {
+                    setShowManualInput(false);
+                    setManualISBN('');
+                    setError(null);
+                  }}
+                  icon={<Camera className="w-5 h-5" />}
+                  className="w-full bg-white/10 hover:bg-white/20 text-white border-white/30"
+                >
+                  Usa Fotocamera
+                </Button>
+              </div>
+            </form>
           </div>
         )}
 
